@@ -28,7 +28,7 @@ from qgis.PyQt import QtGui, QtWidgets, uic
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtCore import QSettings, QSize
 from qgis.PyQt.QtWidgets import QFrame, QMessageBox, QPushButton
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidget, QTableWidgetItem, QPushButton, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidget, QTableWidgetItem, QPushButton, QVBoxLayout, QWidget, QComboBox, QProgressDialog
 from qgis.PyQt.QtGui import QDesktopServices
 from PyQt5.QtGui import QColor
 from qgis.PyQt.QtCore import Qt, QUrl
@@ -51,6 +51,17 @@ from qgis.core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsP
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'lerpluswidget.ui'))
 
+
+
+class DateTableWidgetItem(QTableWidgetItem):
+    def __init__(self, date_str, timestamp):
+        super().__init__(date_str)
+        self.timestamp = timestamp
+
+    def __lt__(self, other):
+        if isinstance(other, DateTableWidgetItem):
+            return self.timestamp < other.timestamp
+        return super().__lt__(other)
 
 class LerPlusWidget(QFrame, FORM_CLASS):
 
@@ -89,7 +100,8 @@ class LerPlusWidget(QFrame, FORM_CLASS):
 
         self.resulttable.setColumnCount(12)
         self.resulttable.setHorizontalHeaderLabels(
-            ['LER#', "Status", "", "Ejere", "LER2", "-LER2", "Beskrivelse", "Kortviser", "ZIP", "GML", "DGN", "GeoPKG"])
+            ['LER#', "Dato", "Lavet af", "Status", "Dele", "Ejere", "LER2", "-LER2",
+             "Beskrivelse",   "Download", "Importér", "Kortviser"]) #"ZIP", "GML", "DGN",
         self.resulttable.setSortingEnabled(True)
 
         #self.readconfig()
@@ -212,7 +224,7 @@ class LerPlusWidget(QFrame, FORM_CLASS):
                 reply = json.loads(r.text)
                 # QgsMessageLog.logMessage(reply['data']['client name'])
 
-                self.clientName.setProperty("text", reply['data']['client name'])
+                self.clientName.setProperty("text", reply['data']['user name'] + ", " + reply['data']['client name'])
                 if reply['data']['ler2ok'] == 1:
                     self.LER2Status.setProperty("text", "LER2-status: OK")
                     self.LER2Status.setStyleSheet("color:green")
@@ -266,6 +278,18 @@ class LerPlusWidget(QFrame, FORM_CLASS):
         widget.layout().addWidget(button)
         self.iface.messageBar().pushWidget(widget, level=Qgis.Warning, duration=15)
 
+    def getProgressBox(self, title, message):
+        progress_dialog = QProgressDialog(message, None, 0, 0, self)
+        progress_dialog.setWindowTitle(title)
+        progress_dialog.setModal(True)
+        progress_dialog.setCancelButton(None)
+        progress_dialog.show()
+
+        # Simulate a processing task
+        QApplication.processEvents()
+        return progress_dialog
+
+
     def updateSessions(self, force=False):
         # QMessageBox.information(self, 'HI')
         settings = QgsSettings()
@@ -285,16 +309,26 @@ class LerPlusWidget(QFrame, FORM_CLASS):
         if force is True:
             self.updatenowButton.setText("Opdaterer...")
 
+        pbox = self.getProgressBox("Snakker med lerplus server", "Henter data...")
+
+
         r = requests.get(API_URLBASE + '/getsessions?apitoken=' + apitoken)
-        if r.status_code != 200:
-            self.updatelabel.setText("Sidst opdateret: fejl ved api-kald, 200")
-            self.updatenowButton.setText("Tjek nu")
-            return
 
         if not is_valid_json(r.text):
             QMessageBox.information(self, 'Invalid API-response', r.text)
             self.updatenowButton.setText("Tjek nu")
             return
+
+        if inDebugMode():
+            QMessageBox.information(self, 'API-response', r.text)
+
+        if r.status_code != 200:
+            self.updatelabel.setText("Sidst opdateret: fejl ved api-kald, 200")
+            self.updatenowButton.setText("Tjek nu")
+            return
+
+
+
 
        # if settings.value("lerplus/debugmode") == 1:
         #    QMessageBox.information(self, 'API-response', r.text)
@@ -319,25 +353,44 @@ class LerPlusWidget(QFrame, FORM_CLASS):
 
         self.resulttable.setRowCount(0)
 
+        pbox.setRange(0, len(response['data']['sessions']) + 1)
+
+        count = 0
+
+
         buttons = {}
         for session in response['data']['sessions']:
+
+            count += 1
+            pbox.setValue(count)
+            QApplication.processEvents()
             self.resulttable.insertRow(row)
-            self.resulttable.setItem(row, 0, QTableWidgetItem(session['lerrespons']['Id']))
 
-            self.resulttable.setItem(row, 1, QTableWidgetItem(session['statustext']))
+            rowcount=0
+            self.resulttable.setItem(row, rowcount, QTableWidgetItem(session['lerrespons']['Id']))
 
-            bname = 'button' + session['lerrespons']['Id']
-            # QMessageBox.information(self, 'SUCCESS! API-response', bname)
-            buttons[bname] = QPushButton("Importér")
-            # button =
-            # buttons[bname].clicked.connect(lambda: self.showResult(session['lerrespons']['Id']))
-            buttons[bname].clicked.connect(partial(self.showResult, session['lerrespons']['Id']))
-            self.resulttable.setCellWidget(row, 2, buttons[bname])
+
+            rowcount += 1
+            item = DateTableWidgetItem(session['dato'], session['datounix'])
+            self.resulttable.setItem(row, rowcount, item)
+
+            rowcount += 1
+            self.resulttable.setItem(row, rowcount, QTableWidgetItem(session['lavetaf']))
+
+            rowcount += 1
+            self.resulttable.setItem(row, rowcount, QTableWidgetItem(session['statustext']))
+
+            rowcount += 1
+            self.resulttable.setItem(row, rowcount, QTableWidgetItem(session['slices']))
+
+
+
+
 
             ejercount = QTableWidgetItem(str(session['ejercount']))
             ejercount.setToolTip(str(session['ejernavnestring']))
-
-            self.resulttable.setItem(row, 3, ejercount)
+            rowcount += 1
+            self.resulttable.setItem(row, rowcount, ejercount)
 
             resultitem = QTableWidgetItem(str(session['ejerleveret']) + "/" + str(session['ejerforventet']))
             if session['ejerleveret'] == session['ejerforventet']:
@@ -346,11 +399,23 @@ class LerPlusWidget(QFrame, FORM_CLASS):
                 resultitem.setBackground(QColor(245, 66, 66))
             #resultitem.setToolTip(str(session['ejernavnestring']))
 
-            self.resulttable.setItem(row, 4, resultitem)
+            rowcount += 1
+            self.resulttable.setItem(row, rowcount, resultitem)
 
-            self.resulttable.setItem(row, 5, QTableWidgetItem(str(session['ejerudenom'])))
+            rowcount += 1
+            self.resulttable.setItem(row, rowcount, QTableWidgetItem(str(session['ejerudenom'])))
 
-            self.resulttable.setItem(row, 6, QTableWidgetItem(session['description']))
+            rowcount += 1
+            self.resulttable.setItem(row, rowcount, QTableWidgetItem(session['description']))
+
+
+            #Importbutton
+            bname = 'button' + session['lerrespons']['Id']
+            # QMessageBox.information(self, 'SUCCESS! API-response', bname)
+            buttons[bname] = QPushButton("Importér")
+            buttons[bname].clicked.connect(partial(self.showResult, session['lerrespons']['Id']))
+            rowcount += 1
+            self.resulttable.setCellWidget(row, rowcount, buttons[bname])
 
             bname = 'kortbutton' + session['lerrespons']['Id']
             # QMessageBox.information(self, 'SUCCESS! API-response', bname)
@@ -358,42 +423,35 @@ class LerPlusWidget(QFrame, FORM_CLASS):
             # button =
             # buttons[bname].clicked.connect(lambda: self.showResult(session['lerrespons']['Id']))
             buttons[bname].clicked.connect(partial(self.showKortviser, session['lerrespons']['Id'], session['GUID']))
-            self.resulttable.setCellWidget(row, 7, buttons[bname])
+            rowcount += 1
+            self.resulttable.setCellWidget(row, rowcount, buttons[bname])
 
-            bname = 'zipbutton' + session['lerrespons']['Id']
-            buttons[bname] = QPushButton("Hent")
-            buttons[bname].clicked.connect(partial(self.downloadSession, session['ssid'], 'zip'))
-            self.resulttable.setCellWidget(row, 8, buttons[bname])
+            combo_box = QComboBox()
+            combo_box.addItem("Select an option")  # Placeholder option
+            combo_box.addItem("zip")
+            combo_box.addItem("geojson")
+            combo_box.addItem("geopackage")
+            #combo_box.currentIndexChanged.connect(lambda index, row=row: self.on_option_selected(session['ssid'], row))
+            combo_box.currentIndexChanged.connect(partial(self.downloadSession, session['ssid'], combo_box))
 
-            bname = 'gmlbutton' + session['lerrespons']['Id']
-            buttons[bname] = QPushButton("Hent")
-            buttons[bname].clicked.connect(partial(self.downloadSession, session['ssid'], 'gml'))
-            self.resulttable.setCellWidget(row, 9, buttons[bname])
-
-            bname = 'dgnbutton' + session['lerrespons']['Id']
-            buttons[bname] = QPushButton("Hent")
-            buttons[bname].clicked.connect(partial(self.downloadSession, session['ssid'], 'dgn'))
-            self.resulttable.setCellWidget(row, 10, buttons[bname])
-
-            bname = 'gpkgbutton' + session['lerrespons']['Id']
-            buttons[bname] = QPushButton("Hent")
-            buttons[bname].clicked.connect(partial(self.downloadSession, session['ssid'], 'gpkg'))
-            self.resulttable.setCellWidget(row, 11, buttons[bname])
-
-
-
+            combo_box.currentIndexChanged.connect(
+                lambda index, combo_box=combo_box, row=row: self.on_option_selected(combo_box, row))
+            rowcount+=1
+            self.resulttable.setCellWidget(row, rowcount, combo_box)
 
             row = row + 1
 
         self.resulttable.resizeColumnsToContents()
+        pbox.close()
         #self.resulttable.horizontalHeader().setStretchLastSection(True)
         return
 
-    def downloadSession(self, ssid, type):
+    def downloadSession(self, ssid, combobox):
         token = get_download_token(self, ssid)
         if token is False:
             return
         #QMessageBox.information(self, 'token', token)
+        type = combobox.currentText()
 
         url = 'https://backend.lerplus.dk/download/' + type + '/' + token
         qturl = QUrl(url)  # Replace with your desired URL
@@ -416,6 +474,7 @@ class LerPlusWidget(QFrame, FORM_CLASS):
 
         settings = QgsSettings()
         token = settings.value("lerplusdock/apitoken")
+        pbox=self.getProgressBox('Henter data', "Indlæser ledningsdata")
         r = requests.get(API_URLBASE + '/getpgresults?apitoken=' + token + '&lernr=' + lerid)
         # QMessageBox.information(self, 'ERROR! API-response', str(r.status_code))
 
@@ -485,8 +544,14 @@ class LerPlusWidget(QFrame, FORM_CLASS):
         # redtest = os.path.join(styles_directory, 'redtest.qml')
         # elledning = os.path.join(styles_directory, 'Elledning.qml')
         # redtest = "styles/redtest.qml"
+
+        pbox.setRange(0,len(response['data']['tables'])+1)
         graveforesp_layer = ''
+        count = 0
         for table in response['data']['tables']:
+            count+=1
+            pbox.setValue(count)
+            QApplication.processEvents()
 
             if table['tablename'] == 'informationsressource':
                 continue
@@ -512,7 +577,15 @@ class LerPlusWidget(QFrame, FORM_CLASS):
             # ler:" +
 
             if not postgis_layer.isValid():
-                # QMessageBox.information(self, 'Layer failed to load!', 'dont know why')
+                error_message = f"Layer '{table['tablename']}' failed to load!"
+                QgsMessageLog.logMessage(error_message, 'PostGIS Layer Loader', Qgis.Critical)
+
+                # Capture additional information about the error
+                #error_message += f"\nURI: {uri.uri()}"
+                #QgsMessageLog.logMessage(f"URI: {uri.uri()}", 'PostGIS Layer Loader', Qgis.Critical)
+
+                #QMessageBox.information(self, 'Layer failed to load!', error_message)
+                #QMessageBox.information(self, 'Layer failed to load!', 'dont know why' + table['tablename'])
                 tis = 0
             else:
                 # QMessageBox.information(self, 'Layer field names', ''.join(map(str, postgis_layer.fields().names())))
@@ -581,6 +654,7 @@ class LerPlusWidget(QFrame, FORM_CLASS):
                 # Refresh the layer to see the changes
                 # new_layer.triggerRepaint()
                 self.iface.mapCanvas().refresh()
+        pbox.close()
 
         if graveforesp_layer != '':
             # QMessageBox.information(self, 'getting to graveforesp!', 'dont know why')

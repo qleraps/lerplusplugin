@@ -3,17 +3,18 @@
 # This file should be included when you package your plugin.# Mandatory items:
 
 [general]
-name=LER+ Udvikling
+name=LER+
+experimental=True
 qgisMinimumVersion=3.0
 description=Nem adgang til LER2 forespørgsler
-version=2.0.0
+version=1.99.2
 author=qLER ApS
 email=morten@qler.dk
 
-about=En plugin, der sammen med en konto hos lerplus.dk giver mulighed for at at oprette og hente LER2-forespørgsler direkte i qGIS
+about=En plugin, der sammen med en konto hos lerplus.dk giver mulighed for at at oprette og hente LER2-forespørgsler, direkte i qGIS
 
-#tracker=http://bugs
-repository=https://plugins.qgis.dk
+tracker=https://github.com/qleraps/lerplusplugin/issues
+repository=https://github.com/qleraps/lerplusplugin
 # End of mandatory metadata
 
 # Recommended items:
@@ -29,7 +30,7 @@ homepage=https://lerplus.dk
 category=Web
 icon=icon.png
 # experimental flag
-experimental=False
+
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False

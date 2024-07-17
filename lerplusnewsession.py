@@ -63,6 +63,8 @@ class LERplusNewSession(QtWidgets.QDialog, FORM_CLASS):
 
         self.getTemplateButton.clicked.connect(self.getTemplate)
         self.saveTemplateButton.clicked.connect(self.saveTemplate)
+        self.deleteTemplateButton.clicked.connect(self.deleteTemplate)
+
 
         self.updateTemplateList()
         self.geometry = ''
@@ -133,6 +135,27 @@ class LERplusNewSession(QtWidgets.QDialog, FORM_CLASS):
 
         self.setFieldsFromArray(json.loads(apiresponse['data']['fieldvalues']))
 
+
+    def deleteTemplate(self):
+
+
+        reply = QMessageBox.question(self, 'Slet skabelon',
+                                     'Er du sikker på du vil slette denne skabelon?',
+                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if reply == QMessageBox.No:
+            return
+        data = {
+            'templatename':  self.templateDropdown.currentText()
+        }
+        apiresponse = make_api_call(self, "deletetemplate", data)
+
+        if apiresponse is False:
+            return
+
+        self.updateTemplateList()
+
+        QMessageBox.information(self, 'Skabeloner', 'skabelonen blev slettet')
+
     def saveTemplate(self):
         newname, ok = QInputDialog.getText(self, 'Gem skabelon', 'Hvad skal den nye skabelon kaldes:')
         if ok:
@@ -159,7 +182,7 @@ class LERplusNewSession(QtWidgets.QDialog, FORM_CLASS):
             , 'kontaktperson': self.kontaktperson.text()
             #, 'kontaktadresse': self.kontaktadresse.text()
             , 'bemaerkning': self.bemaerkning.toPlainText()
-
+            , 'sagsnummer': self.sagsnummer.toPlainText()
             , 'polygon': self.showgeometry.toPlainText()
 
             , 'forsyningsart_teledata': self.forsyningsart_teledata.checkState()
@@ -207,8 +230,7 @@ class LERplusNewSession(QtWidgets.QDialog, FORM_CLASS):
         self.kontaktperson.setText(data['kontaktperson'])
         #self.kontaktadresse.setText(data['kontaktadresse'])
         self.bemaerkning.setPlainText(data['bemaerkning'])
-
-
+        self.sagsnummer.setPlainText(data['sagsnummer'])
 
         self.forsyningsart_teledata.setCheckState(data['forsyningsart_teledata'])
         self.forsyningsart_antenne.setCheckState(data['forsyningsart_antenne'])
@@ -237,15 +259,6 @@ class LERplusNewSession(QtWidgets.QDialog, FORM_CLASS):
         self.graveart_spraengning.setCheckState(data['graveart_spraengning'])
         self.graveart_andet.setCheckState(data['graveart_andet'])
         self.graveart_andet_tekst.setText(data['graveart_andet_tekst'])
-
-        #self.papirformat.setCurrentText(data["papirformat"])
-
-        #self.digitalformat_shp.setCheckState(data['digitalformat_shp'])
-        #self.digitalformat_tab.setCheckState(data['digitalformat_tab'])
-        #self.digitalformat_dgn.setCheckState(data['digitalformat_dgn'])
-        #self.digitalformat_dxf.setCheckState(data['digitalformat_dxf'])
-
-
 
     def sendNewSession(self):
         #QMessageBox.information(self, 'API-response', 'test')
