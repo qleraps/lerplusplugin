@@ -6,77 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1017</width>
-    <height>547</height>
+    <width>868</width>
+    <height>513</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Ny forespørgsel</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="1" column="1" colspan="3">
-    <widget class="QLabel" name="label_9">
-     <property name="text">
-      <string>Hvis andet, angiv her:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="13" column="1" colspan="3">
-    <widget class="QCheckBox" name="forsyningsart_andet">
-     <property name="text">
-      <string>Andet:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="5" colspan="2">
-    <widget class="QCheckBox" name="graveart_styret_underboring">
-     <property name="text">
-      <string>Styret underboring</string>
-     </property>
-    </widget>
-   </item>
-   <item row="9" column="5" colspan="2">
-    <widget class="QCheckBox" name="graveart_cracking">
-     <property name="text">
-      <string>Cracking</string>
-     </property>
-    </widget>
-   </item>
-   <item row="12" column="5" colspan="2">
-    <widget class="QCheckBox" name="graveart_spraengning">
-     <property name="text">
-      <string>Sprængning</string>
-     </property>
-    </widget>
-   </item>
-   <item row="7" column="5" colspan="2">
-    <widget class="QCheckBox" name="graveart_boring_m_paelebor">
-     <property name="text">
-      <string>Boring m. pælebor</string>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="1" colspan="3">
-    <widget class="QCheckBox" name="forsyningsart_termisk">
-     <property name="text">
-      <string>Termisk</string>
-     </property>
-    </widget>
-   </item>
-   <item row="19" column="6">
-    <widget class="QPushButton" name="getTemplateButton">
-     <property name="text">
-      <string>Hent skabelon</string>
-     </property>
-    </widget>
-   </item>
-   <item row="8" column="5" colspan="2">
-    <widget class="QCheckBox" name="graveart_relining">
-     <property name="text">
-      <string>Relining</string>
-     </property>
-    </widget>
-   </item>
    <item row="2" column="5">
     <widget class="QLabel" name="label_6">
      <property name="font">
@@ -90,10 +27,10 @@
      </property>
     </widget>
    </item>
-   <item row="8" column="1" colspan="3">
-    <widget class="QCheckBox" name="forsyningsart_olie">
+   <item row="7" column="5" colspan="2">
+    <widget class="QCheckBox" name="graveart_boring_m_paelebor">
      <property name="text">
-      <string>Olie</string>
+      <string>Boring m. pælebor</string>
      </property>
     </widget>
    </item>
@@ -101,208 +38,6 @@
     <widget class="QPushButton" name="cancelButton">
      <property name="text">
       <string>Afbryd</string>
-     </property>
-    </widget>
-   </item>
-   <item row="10" column="1" colspan="3">
-    <widget class="QCheckBox" name="forsyningsart_aflob">
-     <property name="text">
-      <string>Afløb</string>
-     </property>
-    </widget>
-   </item>
-   <item row="11" column="1" colspan="3">
-    <widget class="QCheckBox" name="forsyningsart_vejafvanding">
-     <property name="text">
-      <string>Vejafvanding</string>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="1" colspan="3">
-    <widget class="QCheckBox" name="forsyningsart_antenne">
-     <property name="text">
-      <string>Antenne</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="1" colspan="2">
-    <widget class="QLabel" name="label_7">
-     <property name="font">
-      <font>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>Forsyningsart*</string>
-     </property>
-    </widget>
-   </item>
-   <item row="9" column="1" colspan="3">
-    <widget class="QCheckBox" name="forsyningsart_gas">
-     <property name="text">
-      <string>Gas</string>
-     </property>
-    </widget>
-   </item>
-   <item row="10" column="5" colspan="2">
-    <widget class="QCheckBox" name="graveart_plov">
-     <property name="text">
-      <string>Plov</string>
-     </property>
-    </widget>
-   </item>
-   <item row="18" column="6">
-    <widget class="QPushButton" name="deleteTemplateButton">
-     <property name="text">
-      <string>Slet skabelon</string>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="1" colspan="3">
-    <widget class="QCheckBox" name="forsyningsart_teledata">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="text">
-      <string>Tele og data</string>
-     </property>
-     <property name="checked">
-      <bool>false</bool>
-     </property>
-     <property name="tristate">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="2" colspan="4">
-    <widget class="QComboBox" name="formaal">
-     <item>
-      <property name="text">
-       <string>Gravearbejde</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Projektering</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Andet</string>
-      </property>
-     </item>
-    </widget>
-   </item>
-   <item row="14" column="1" colspan="4">
-    <widget class="QLineEdit" name="forsyningsart_andet_tekst"/>
-   </item>
-   <item row="14" column="5" colspan="2">
-    <widget class="QLineEdit" name="graveart_andet_tekst"/>
-   </item>
-   <item row="12" column="1" colspan="3">
-    <widget class="QCheckBox" name="forsyningsart_foringsror">
-     <property name="text">
-      <string>Føringsrør</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="4" colspan="3">
-    <widget class="QLineEdit" name="formaal_andet_tekst"/>
-   </item>
-   <item row="5" column="1" colspan="3">
-    <widget class="QCheckBox" name="forsyningsart_vand">
-     <property name="text">
-      <string>Vand</string>
-     </property>
-    </widget>
-   </item>
-   <item row="11" column="5" colspan="2">
-    <widget class="QCheckBox" name="graveart_ramning">
-     <property name="text">
-      <string>Ramning</string>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="1">
-    <widget class="QLabel" name="label_5">
-     <property name="text">
-      <string>Formål*</string>
-     </property>
-    </widget>
-   </item>
-   <item row="7" column="1" colspan="3">
-    <widget class="QCheckBox" name="forsyningsart_el">
-     <property name="text">
-      <string>El</string>
-     </property>
-    </widget>
-   </item>
-   <item row="20" column="0">
-    <widget class="QLabel" name="arealLabel">
-     <property name="text">
-      <string>TextLabel</string>
-     </property>
-    </widget>
-   </item>
-   <item row="17" column="6">
-    <widget class="QComboBox" name="templateDropdown">
-     <item>
-      <property name="text">
-       <string/>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Dette er en testskabelon 1</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Dette er en testskabelon 2</string>
-      </property>
-     </item>
-    </widget>
-   </item>
-   <item row="5" column="5" colspan="2">
-    <widget class="QCheckBox" name="graveart_kaedegraver">
-     <property name="text">
-      <string>Kædegraver</string>
-     </property>
-    </widget>
-   </item>
-   <item row="20" column="1" colspan="3">
-    <widget class="QPushButton" name="sendButton">
-     <property name="text">
-      <string>Send forespørgsel</string>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="5" colspan="2">
-    <widget class="QCheckBox" name="graveart_gravemaskine">
-     <property name="text">
-      <string>Gravemaskine</string>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="5" colspan="2">
-    <widget class="QCheckBox" name="graveart_gennempresning">
-     <property name="text">
-      <string>Gennempresning</string>
-     </property>
-    </widget>
-   </item>
-   <item row="20" column="6">
-    <widget class="QPushButton" name="saveTemplateButton">
-     <property name="text">
-      <string>Gem skabelon</string>
-     </property>
-    </widget>
-   </item>
-   <item row="13" column="5" colspan="2">
-    <widget class="QCheckBox" name="graveart_andet">
-     <property name="text">
-      <string>Andet:</string>
      </property>
     </widget>
    </item>
@@ -407,44 +142,301 @@
      </item>
     </layout>
    </item>
-   <item row="16" column="0" rowspan="3">
-    <widget class="QPlainTextEdit" name="showgeometry">
-     <property name="readOnly">
-      <bool>true</bool>
+   <item row="8" column="1" colspan="3">
+    <widget class="QCheckBox" name="forsyningsart_olie">
+     <property name="text">
+      <string>Olie</string>
      </property>
     </widget>
    </item>
-   <item row="19" column="0">
+   <item row="2" column="1" colspan="2">
+    <widget class="QLabel" name="label_7">
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Forsyningsart*</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="1" colspan="3">
+    <widget class="QCheckBox" name="forsyningsart_antenne">
+     <property name="text">
+      <string>Antenne</string>
+     </property>
+    </widget>
+   </item>
+   <item row="19" column="6">
+    <widget class="QPushButton" name="updateTemplateButton">
+     <property name="text">
+      <string>Gem ændringer i skabelon</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="1" colspan="3">
+    <widget class="QCheckBox" name="forsyningsart_el">
+     <property name="text">
+      <string>El</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="5" colspan="2">
+    <widget class="QCheckBox" name="graveart_styret_underboring">
+     <property name="text">
+      <string>Styret underboring</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="1" colspan="3">
+    <widget class="QCheckBox" name="forsyningsart_termisk">
+     <property name="text">
+      <string>Termisk</string>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="5" colspan="2">
+    <widget class="QCheckBox" name="graveart_plov">
+     <property name="text">
+      <string>Plov</string>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="1" colspan="3">
+    <widget class="QCheckBox" name="forsyningsart_gas">
+     <property name="text">
+      <string>Gas</string>
+     </property>
+    </widget>
+   </item>
+   <item row="16" column="6">
+    <widget class="QComboBox" name="templateDropdown">
+     <item>
+      <property name="text">
+       <string/>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Dette er en testskabelon 1</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Dette er en testskabelon 2</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="12" column="5" colspan="2">
+    <widget class="QCheckBox" name="graveart_spraengning">
+     <property name="text">
+      <string>Sprængning</string>
+     </property>
+    </widget>
+   </item>
+   <item row="20" column="0">
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QLabel" name="label_10">
+      <widget class="QLabel" name="arealLabel">
        <property name="text">
-        <string>Buffer radius:</string>
+        <string>areallabel</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QSlider" name="bufferRadius">
+      <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
-      </widget>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
      </item>
      <item>
-      <widget class="QLabel" name="radiusLabel">
+      <widget class="QLabel" name="multiLabel">
        <property name="text">
         <string>TextLabel</string>
        </property>
       </widget>
      </item>
-     <item>
-      <widget class="QLabel" name="label_12">
-       <property name="text">
-        <string>m.</string>
-       </property>
-      </widget>
-     </item>
     </layout>
+   </item>
+   <item row="20" column="1" colspan="3">
+    <widget class="QPushButton" name="sendButton">
+     <property name="text">
+      <string>Send forespørgsel</string>
+     </property>
+    </widget>
+   </item>
+   <item row="13" column="5" colspan="2">
+    <widget class="QCheckBox" name="graveart_andet">
+     <property name="text">
+      <string>Andet:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="11" column="5" colspan="2">
+    <widget class="QCheckBox" name="graveart_ramning">
+     <property name="text">
+      <string>Ramning</string>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="5" colspan="2">
+    <widget class="QCheckBox" name="graveart_relining">
+     <property name="text">
+      <string>Relining</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1" colspan="3">
+    <widget class="QLabel" name="label_9">
+     <property name="text">
+      <string>Hvis andet, angiv her:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="5" colspan="2">
+    <widget class="QCheckBox" name="graveart_gravemaskine">
+     <property name="text">
+      <string>Gravemaskine</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="2" colspan="4">
+    <widget class="QComboBox" name="formaal">
+     <item>
+      <property name="text">
+       <string>Gravearbejde</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Projektering</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Andet</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="9" column="5" colspan="2">
+    <widget class="QCheckBox" name="graveart_cracking">
+     <property name="text">
+      <string>Cracking</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QLabel" name="label_5">
+     <property name="text">
+      <string>Formål*</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="5" colspan="2">
+    <widget class="QCheckBox" name="graveart_kaedegraver">
+     <property name="text">
+      <string>Kædegraver</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1" colspan="3">
+    <widget class="QCheckBox" name="forsyningsart_teledata">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="text">
+      <string>Tele og data</string>
+     </property>
+     <property name="checked">
+      <bool>false</bool>
+     </property>
+     <property name="tristate">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="12" column="1" colspan="3">
+    <widget class="QCheckBox" name="forsyningsart_foringsror">
+     <property name="text">
+      <string>Føringsrør</string>
+     </property>
+    </widget>
+   </item>
+   <item row="14" column="5" colspan="2">
+    <widget class="QLineEdit" name="graveart_andet_tekst"/>
+   </item>
+   <item row="18" column="6">
+    <widget class="QPushButton" name="getTemplateButton">
+     <property name="text">
+      <string>Hent skabelon</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="1" colspan="3">
+    <widget class="QCheckBox" name="forsyningsart_vand">
+     <property name="text">
+      <string>Vand</string>
+     </property>
+    </widget>
+   </item>
+   <item row="20" column="6">
+    <widget class="QPushButton" name="saveTemplateButton">
+     <property name="text">
+      <string>Gem som ny skabelon</string>
+     </property>
+    </widget>
+   </item>
+   <item row="14" column="1" colspan="4">
+    <widget class="QLineEdit" name="forsyningsart_andet_tekst"/>
+   </item>
+   <item row="11" column="1" colspan="3">
+    <widget class="QCheckBox" name="forsyningsart_vejafvanding">
+     <property name="text">
+      <string>Vejafvanding</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="4" colspan="3">
+    <widget class="QLineEdit" name="formaal_andet_tekst"/>
+   </item>
+   <item row="6" column="5" colspan="2">
+    <widget class="QCheckBox" name="graveart_gennempresning">
+     <property name="text">
+      <string>Gennempresning</string>
+     </property>
+    </widget>
+   </item>
+   <item row="13" column="1" colspan="3">
+    <widget class="QCheckBox" name="forsyningsart_andet">
+     <property name="text">
+      <string>Andet:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="1" colspan="3">
+    <widget class="QCheckBox" name="forsyningsart_aflob">
+     <property name="text">
+      <string>Afløb</string>
+     </property>
+    </widget>
+   </item>
+   <item row="17" column="6">
+    <widget class="QPushButton" name="deleteTemplateButton">
+     <property name="text">
+      <string>Slet skabelon</string>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

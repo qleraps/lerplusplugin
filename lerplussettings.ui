@@ -39,10 +39,34 @@
       <string>Avanceret</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_4">
+      <item row="2" column="0">
+       <widget class="QTextEdit" name="notesTextEdit">
+        <property name="acceptRichText">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
       <item row="0" column="0">
        <widget class="QCheckBox" name="debugCheckbox">
         <property name="text">
          <string>Debug mode</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="versionLabel">
+        <property name="text">
+         <string>TextLabel</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Noter</string>
         </property>
        </widget>
       </item>

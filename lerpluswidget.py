@@ -97,12 +97,13 @@ class LerPlusWidget(QFrame, FORM_CLASS):
         self.timer = QTimer()
         self.timer.timeout.connect(self.updateSessions)
         self.timer.start(120000)  # 60 seconds in milliseconds
-
-        self.resulttable.setColumnCount(12)
-        self.resulttable.setHorizontalHeaderLabels(
-            ['LER#', "Dato", "Lavet af", "Status", "Dele", "Ejere", "LER2", "-LER2",
-             "Beskrivelse",   "Download", "Importér", "Kortviser"]) #"ZIP", "GML", "DGN",
+        columns = ['LER#', "Dato", "Lavet af", "Status", "Multi", "Ejere", "LER2", "-LER2",
+         "Beskrivelse", "Sags#", "Importér", "Kortviser", "Download", "Arkivering", "CAD"]
+        self.resulttable.setColumnCount(len(columns))
+        self.resulttable.setHorizontalHeaderLabels(columns) #"ZIP", "GML", "DGN",
         self.resulttable.setSortingEnabled(True)
+        self.resulttable.setSelectionBehavior(QTableWidget.SelectRows)
+        self.resulttable.setEditTriggers(QTableWidget.NoEditTriggers) #make it readonly
 
         #self.readconfig()
         #self.updateSessions()
@@ -138,7 +139,6 @@ class LerPlusWidget(QFrame, FORM_CLASS):
         mypoly = list[0]
         geom = mypoly.geometry()
 
-
         wkt = str(geom.asWkt())
         if wkt.startswith("Polygon") is False:
             QMessageBox.about(self, "Fejl", "Den valgte geometri skal være POLYGON. Nu er den: " + wkt[0:20])
@@ -163,8 +163,17 @@ class LerPlusWidget(QFrame, FORM_CLASS):
 
         self.newsession = LERplusNewSession()
         self.newsession.setIface(self.iface)
+        if geom.area() > 250000:
+            areal = "{0:,.1f}".format(geom.area())
+            if geom.area() > 1000000:
+                QMessageBox.about(self, "Fejl", "Den valgte geometri har et areal på mere en 4x LER's grænse.\nDette håndterer vi ikke (endnu)\nAreal: " + areal)
+                return
+
+            reply = QMessageBox.question(self,  "Advarsel", "Du er ved at oprette en søgning på " + areal + "m2.\nDette er mere end LER tillader i en enkelt søgning og området vil derfor\nblive forsøgt opdelt i mindre søgeområder.\nVil du fortsætte?",
+                                         QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            if reply == QMessageBox.No:
+                return
         self.newsession.setGeometry(geom)
-        #self.newsession.setGeometry(str(geom.asWkt()))
         self.newsession.setupValues()
         self.newsession.exec_()
 
@@ -172,7 +181,7 @@ class LerPlusWidget(QFrame, FORM_CLASS):
 
     def filterresulttable(self):
         filter_text = self.filterEdit.text().lower()
-        columns_to_filter = [0, 6]  # Indices of the columns to filter
+        columns_to_filter = [0, 1, 2, 3, 6]  # Indices of the columns to filter
 
         for row in range(self.resulttable.rowCount()):
             row_data = [self.resulttable.item(row, col).text().lower() if col in columns_to_filter else "" for col in
@@ -197,7 +206,6 @@ class LerPlusWidget(QFrame, FORM_CLASS):
         #self.settings.setIface(self.iface)
         #self.settings.exec_()
 
-
     def checkToken(self):
         settings = QgsSettings()
         token = settings.value("lerplusdock/apitoken")
@@ -207,21 +215,23 @@ class LerPlusWidget(QFrame, FORM_CLASS):
             # QgsMessageLog.logMessage(token)
             # r = requests.get(f'https://backend.lerplus.dk/api/checktoken?apitoken={token}')
             #    if token is
-            r = requests.get(API_URLBASE + '/checktoken?apitoken=' + token)
+            reply = make_api_call(self, 'checktoken', '', 5)
+            #r = requests.get(API_URLBASE + '/checktoken?apitoken=' + token)
 
-            if not is_valid_json(r.text):
+            """if not is_valid_json(r.text):
                 QMessageBox.information(self, 'Invalid API-response', r.text)
                 return
-
+            """
             # QMessageBox.information(self, 'API-response', r.text)
-            if r.status_code == 200:
+            #if r.status_code == 200:
+            if reply is not False:
                 #self.apiStatusBox.setProperty("styleSheet", "background-color: rgb(0, 170, 0);")
                 #self.apiStatusLabel.setProperty("text", "API forbundet")
                 self.clientName.show()
-                if settings.value("lerplus/debugmode") == 1:
-                    QMessageBox.information(self, 'API-response', r.text)
+                #if settings.value("lerplus/debugmode") == 1:
+                #    QMessageBox.information(self, 'API-response', r.text)
 
-                reply = json.loads(r.text)
+                #reply = json.loads(r.text)
                 # QgsMessageLog.logMessage(reply['data']['client name'])
 
                 self.clientName.setProperty("text", reply['data']['user name'] + ", " + reply['data']['client name'])
@@ -241,8 +251,8 @@ class LerPlusWidget(QFrame, FORM_CLASS):
                 # QgsMessageLog.logMessage(str(r.status_code))
                # self.apiStatusBox.setProperty("styleSheet", "background-color: rgb(170, 0, 0);")
               #  self.apiStatusLabel.setProperty("text", "API ikke forbundet")
-                if settings.value("lerplus/debugmode") == 1:
-                    QMessageBox.information(self, 'API-response', r.text)
+                #if settings.value("lerplus/debugmode") == 1:
+                #    QMessageBox.information(self, 'API-response', r.text)
                 self.LER2Status.setProperty("text", "LER2-status: N/A")
                 self.LER2Status.setStyleSheet("color:red")
                 self.clientIsLive.setProperty("text", "Miljø: N/A")
@@ -300,8 +310,6 @@ class LerPlusWidget(QFrame, FORM_CLASS):
             if force is False:
                 return
 
-
-        self.resulttable.clearContents()
         apitoken = settings.value("lerplusdock/apitoken")
         if apitoken is None:
             return
@@ -309,31 +317,16 @@ class LerPlusWidget(QFrame, FORM_CLASS):
         if force is True:
             self.updatenowButton.setText("Opdaterer...")
 
-        pbox = self.getProgressBox("Snakker med lerplus server", "Henter data...")
+        pbox = self.getProgressBox("LER+", "Henter data...")
 
 
-        r = requests.get(API_URLBASE + '/getsessions?apitoken=' + apitoken)
-
-        if not is_valid_json(r.text):
-            QMessageBox.information(self, 'Invalid API-response', r.text)
+        response = make_api_call(self, 'getsessions', '', 80)
+        if response is False:
+            self.updatelabel.setText("Sidst opdateret: fejl ved api-kald")
             self.updatenowButton.setText("Tjek nu")
+            pbox.close()
             return
 
-        if inDebugMode():
-            QMessageBox.information(self, 'API-response', r.text)
-
-        if r.status_code != 200:
-            self.updatelabel.setText("Sidst opdateret: fejl ved api-kald, 200")
-            self.updatenowButton.setText("Tjek nu")
-            return
-
-
-
-
-       # if settings.value("lerplus/debugmode") == 1:
-        #    QMessageBox.information(self, 'API-response', r.text)
-
-        response = json.loads(r.text)
         if response['status'] != 'ok':
             if response['status'] == 'empty':
                 self.resulttable.setItem(0, 0, QTableWidgetItem('Sidst opdateret: ingen tilgængelige besvarelser'))
@@ -341,16 +334,21 @@ class LerPlusWidget(QFrame, FORM_CLASS):
             else:
                 #self.resulttable.setItem(0, 0, QTableWidgetItem('Sidst opdateret: fejl ved api-kald, status!=ok/empty'))
                 self.updatelabel.setText("Sidst opdateret: fejl ved api-kald, status!=ok/empty")
+            pbox.close()
             return
 
         #self.updatelabel.setText("Sidst opdateret: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         self.updatenowButton.setText("Tjek nu")
         if len(response['data']['sessions']) == 0:
-            self.resulttable.setItem(0, 0, QTableWidgetItem('INgen sessions returneret'))
+            #self.resulttable.setItem(0, 0, QTableWidgetItem('Sidst opdateret: ingen tilgængelige besvarelser'))
+            self.updatelabel.setText("Sidst opdateret: ingen tilgængelige besvarelser")
+            self.resulttable.clearContents()
+            self.resulttable.setRowCount(0)
+            pbox.close()
             return
 
         row = 0
-
+        self.resulttable.clearContents()
         self.resulttable.setRowCount(0)
 
         pbox.setRange(0, len(response['data']['sessions']) + 1)
@@ -381,7 +379,7 @@ class LerPlusWidget(QFrame, FORM_CLASS):
             self.resulttable.setItem(row, rowcount, QTableWidgetItem(session['statustext']))
 
             rowcount += 1
-            self.resulttable.setItem(row, rowcount, QTableWidgetItem(session['slices']))
+            self.resulttable.setItem(row, rowcount, QTableWidgetItem(session['multi']))
 
 
 
@@ -392,21 +390,25 @@ class LerPlusWidget(QFrame, FORM_CLASS):
             rowcount += 1
             self.resulttable.setItem(row, rowcount, ejercount)
 
-            resultitem = QTableWidgetItem(str(session['ejerleveret']) + "/" + str(session['ejerforventet']))
+            ejerstatus = QTableWidgetItem(str(session['ejerleveret']) + "/" + str(session['ejerforventet']))
+            ejerstatus.setToolTip(str(session['ejerleveret']))
             if session['ejerleveret'] == session['ejerforventet']:
-                resultitem.setBackground(QColor(66, 245, 126))
+                ejerstatus.setBackground(QColor(66, 245, 126))
             else:
-                resultitem.setBackground(QColor(245, 66, 66))
+                ejerstatus.setBackground(QColor(245, 66, 66))
             #resultitem.setToolTip(str(session['ejernavnestring']))
 
             rowcount += 1
-            self.resulttable.setItem(row, rowcount, resultitem)
+            self.resulttable.setItem(row, rowcount, ejerstatus)
 
             rowcount += 1
             self.resulttable.setItem(row, rowcount, QTableWidgetItem(str(session['ejerudenom'])))
 
             rowcount += 1
             self.resulttable.setItem(row, rowcount, QTableWidgetItem(session['description']))
+
+            rowcount += 1
+            self.resulttable.setItem(row, rowcount, QTableWidgetItem(session['sagsnummer']))
 
 
             #Importbutton
@@ -417,6 +419,7 @@ class LerPlusWidget(QFrame, FORM_CLASS):
             rowcount += 1
             self.resulttable.setCellWidget(row, rowcount, buttons[bname])
 
+            #kortviser button
             bname = 'kortbutton' + session['lerrespons']['Id']
             # QMessageBox.information(self, 'SUCCESS! API-response', bname)
             buttons[bname] = QPushButton("Vis i LER kortviser")
@@ -427,10 +430,11 @@ class LerPlusWidget(QFrame, FORM_CLASS):
             self.resulttable.setCellWidget(row, rowcount, buttons[bname])
 
             combo_box = QComboBox()
-            combo_box.addItem("Select an option")  # Placeholder option
+            combo_box.addItem("Vælg format")  # Placeholder option
             combo_box.addItem("zip")
-            combo_box.addItem("geojson")
-            combo_box.addItem("geopackage")
+            combo_box.addItem("gml")
+            combo_box.addItem("gpkg")
+            #combo_box.addItem("dgn")
             #combo_box.currentIndexChanged.connect(lambda index, row=row: self.on_option_selected(session['ssid'], row))
             combo_box.currentIndexChanged.connect(partial(self.downloadSession, session['ssid'], combo_box))
 
@@ -439,10 +443,26 @@ class LerPlusWidget(QFrame, FORM_CLASS):
             rowcount+=1
             self.resulttable.setCellWidget(row, rowcount, combo_box)
 
-            row = row + 1
 
+            # arkivering button
+            bname = 'archive' + session['lerrespons']['Id']
+            # QMessageBox.information(self, 'SUCCESS! API-response', bname)
+            buttons[bname] = QPushButton("Arkivér")
+            # button =
+            # buttons[bname].clicked.connect(lambda: self.showResult(session['lerrespons']['Id']))
+            buttons[bname].clicked.connect(partial(self.doArchive, session['ssid'], session['lerrespons']['Id']))
+            rowcount += 1
+            self.resulttable.setCellWidget(row, rowcount, buttons[bname])
+
+            rowcount += 1
+            buttons[bname] = QPushButton("Transformér til CAD")
+            buttons[bname].clicked.connect(partial(self.doCAD, session['ssid'], session['lerrespons']['Id']))
+            self.resulttable.setCellWidget(row, rowcount, buttons[bname])
+
+            row = row + 1
         self.resulttable.resizeColumnsToContents()
         pbox.close()
+        self.updatelabel.setText("Sidst opdateret: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         #self.resulttable.horizontalHeader().setStretchLastSection(True)
         return
 
@@ -456,6 +476,30 @@ class LerPlusWidget(QFrame, FORM_CLASS):
         url = 'https://backend.lerplus.dk/download/' + type + '/' + token
         qturl = QUrl(url)  # Replace with your desired URL
         QDesktopServices.openUrl(qturl)
+
+    def doArchive(self, ssid, lerid):
+        reply = QMessageBox.question(self, 'Arkivering',
+                                     'Er du sikker på du vil arkivere forespørgslen med lerid=' + lerid + '?',
+                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if reply == QMessageBox.No:
+            return
+        data = {
+            'ssid': ssid
+        }
+        apiresponse = make_api_call(self, "archivesession",data)
+        niceresponse = json.dumps(apiresponse, sort_keys=True, indent=4)
+        if (apiresponse["status"] == 'ok'):
+            self.updateSessions(True)
+        else:
+            QMessageBox.information(self, 'API-response', apiresponse["errortext"])
+
+    def doCAD(self, ssid, lerid):
+        QMessageBox.information(self, "Transformér til CAD", "Følg guiden på lerplus.dk for at aktivere denne funktion.")
+
+
+
+
+
 
     def showKortviser(self, lerid, guid):
 
@@ -474,11 +518,18 @@ class LerPlusWidget(QFrame, FORM_CLASS):
 
         settings = QgsSettings()
         token = settings.value("lerplusdock/apitoken")
-        pbox=self.getProgressBox('Henter data', "Indlæser ledningsdata")
-        r = requests.get(API_URLBASE + '/getpgresults?apitoken=' + token + '&lernr=' + lerid)
+        pbox=self.getProgressBox('LER+', "Indlæser ledningsdata")
+        data = {
+            'lernr': lerid
+        }
+        response=make_api_call(self,'getpgresults',data, 120)
+        if (response == False or response["status"] != 'ok'):
+            return
+
+        #r = requests.get(API_URLBASE + '/getpgresults?apitoken=' + token + '&lernr=' + lerid)
         # QMessageBox.information(self, 'ERROR! API-response', str(r.status_code))
 
-        if not is_valid_json(r.text):
+        """if not is_valid_json(r.text):
             QMessageBox.information(self, 'Invalid API-response', r.text)
             return
 
@@ -489,6 +540,7 @@ class LerPlusWidget(QFrame, FORM_CLASS):
             QMessageBox.information(self, 'SUCCESS! API-response', r.text)
 
         response = json.loads(r.text)
+        """
 
         # QMessageBox.information(self, '', json.dumps(response['data']['session']))
         groupname = response['data']['session']['description'] + ' (LERID ' + lerid + ')'
@@ -531,6 +583,7 @@ class LerPlusWidget(QFrame, FORM_CLASS):
             connection_info['username'],
             connection_info['password']
         )
+        uri.setParam('connect_timeout', '1')
         # uri_str=uri.uri()
         # QgsProject.instance().writeEntry("PostgreSQL/connections", groupname+' PG connection', uri_str)
 
@@ -616,7 +669,7 @@ class LerPlusWidget(QFrame, FORM_CLASS):
                     os.remove(tmpname)
                     # QMessageBox.information(self, 'loadNamesStyle', type(table['layerstyle']))
                     # print(table['layerstyle'])
-
+                """
                 if table['tablename'] == "elledning":
                     buffer_distance = 10  # Use the appropriate distance units for your data
 
@@ -644,6 +697,7 @@ class LerPlusWidget(QFrame, FORM_CLASS):
                         #bufferzoner.addLayer(buffered_layer)
                   #  else:
                       #  print("Buffered layer not found in memory.")
+                """
 
                 layer_group.addLayer(new_layer)
                 # new_layer.loadNamedStyle(elledning)
@@ -657,7 +711,7 @@ class LerPlusWidget(QFrame, FORM_CLASS):
         pbox.close()
 
         if graveforesp_layer != '':
-            # QMessageBox.information(self, 'getting to graveforesp!', 'dont know why')
+            #QMessageBox.information(self, 'getting to graveforesp!', 'dont know why')
             new_layer = QgsProject.instance().addMapLayer(graveforesp_layer, False)
             layer_group.addLayer(new_layer)
             QgsProject.instance().layerTreeRoot().findLayer(graveforesp_layer.id()).setItemVisibilityChecked(False)

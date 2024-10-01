@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+ # -*- coding: utf-8 -*-
 from qgis.PyQt.QtGui import QIcon
 """
 /***************************************************************************
@@ -31,6 +31,7 @@ from qgis.gui import QgsOptionsWidgetFactory, QgsOptionsPageWidget
 from qgis.core import *
 # Import the code for the DockWidget
 from .lerpluswidget import LerPlusWidget
+from .lerplus_config import PLUGIN_VERSION
 import os.path
 from PyQt5 import QtCore, QtWidgets
 
@@ -49,6 +50,8 @@ class LerPlusDock:
         """
         # Save reference to the QGIS interface
         self.iface = iface
+        self.lerpluswidget = None
+        self.lerplusdockwidget = None
 
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
@@ -76,8 +79,6 @@ class LerPlusDock:
 
         #print "** INITIALIZING LerPlusDock"
 
-        #self.pluginIsActive = False
-        #self.dockwidget = None
 
         #self.settings = Settings()
         #self.options_factory = OptionsFactory(self.settings)
@@ -139,9 +140,13 @@ class LerPlusDock:
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
         #self.lerpluswidget.unload() # try to avoid processing events, when QGIS is closing
-        self.iface.removeDockWidget(self.lerplusdockwidget)
+        if self.lerplusdockwidget is not None:
+            self.iface.removeDockWidget(self.lerplusdockwidget)
+            self.lerplusdockwidget = None
+
+
         self.iface.unregisterOptionsWidgetFactory(self.options_factory)
-        #print("** UNLOAD LerPlusDock")
+
         # remove the toolbar
         #del self.toolbar
 
@@ -208,9 +213,10 @@ class lerplusConfigOptionsPage(QgsOptionsPageWidget, SETTINGS_WIDGET):
             #print('s1')
             self.debugCheckbox.setChecked(True)
         else:
-
             #print(settings.value("lerplusdock/debugmode"))
             self.debugCheckbox.setChecked(False)
+        self.versionLabel.setProperty("text", "Version " + PLUGIN_VERSION)
+        self.notesTextEdit.setText(settings.value("lerplusdock/notes"))
 
         self.config_widget = lerplusConfigOptionsDialog()
         layout = QVBoxLayout()
@@ -223,11 +229,12 @@ class lerplusConfigOptionsPage(QgsOptionsPageWidget, SETTINGS_WIDGET):
         #self.setLayout(layout)
 
     def apply(self):
-
         #        self.config_widget.saveoptions()
         settings = QgsSettings()
         token = self.apitokenEdit.text()
         settings.setValue("lerplusdock/apitoken", token)
+        notes = self.notesTextEdit.toPlainText()
+        settings.setValue("lerplusdock/notes", notes)
         if self.debugCheckbox.checkState() == QtCore.Qt.Checked:
             #print('1')
             settings.setValue("lerplusdock/debugmode", "1")

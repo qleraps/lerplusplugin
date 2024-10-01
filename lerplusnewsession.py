@@ -31,10 +31,9 @@ from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QMessageBox, QIn
 from qgis.core import *
 from datetime import date
 from dateutil.relativedelta import relativedelta
-#import requests
+# import requests
 from .lerplus_config import API_URLBASE
 from .lerplus_utils import *
-
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -43,6 +42,7 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
 
 class LERplusNewSession(QtWidgets.QDialog, FORM_CLASS):
     areaprice = 0
+    geometrywkt = ''
 
     def __init__(self, parent=None):
         """Constructor."""
@@ -54,30 +54,25 @@ class LERplusNewSession(QtWidgets.QDialog, FORM_CLASS):
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
 
-
-
-
-        #self.tokenEdit.setText(settings.value("lerplus/token"))
+        # self.tokenEdit.setText(settings.value("lerplus/token"))
         self.sendButton.clicked.connect(self.sendNewSession)
         self.cancelButton.clicked.connect(self.cancelNewSession)
 
         self.getTemplateButton.clicked.connect(self.getTemplate)
         self.saveTemplateButton.clicked.connect(self.saveTemplate)
+        self.updateTemplateButton.clicked.connect(self.updateTemplate)
         self.deleteTemplateButton.clicked.connect(self.deleteTemplate)
-
 
         self.updateTemplateList()
         self.geometry = ''
         self.projection = ''
 
-
-    #def prepareDataObject(self):
+    # def prepareDataObject(self):
 
     def validate_email(self, email):
         if re.match(r"[^@]+@[^@]+\.[^@]+", email):
             return True
         return False
-
 
     def validateForm(self):
         if not self.description.text():
@@ -87,13 +82,14 @@ class LERplusNewSession(QtWidgets.QDialog, FORM_CLASS):
         if not self.kontaktperson.text() and not self.kontaktadresse.text():
             QMessageBox.information(self, 'Manglende information', 'Der skal ENTEN angives en kontaktperson eller en kontaktadresse. Begge skal være en gyldig email')
             return False
-
+    
         if self.kontaktperson.text() and self.kontaktadresse.text():
             QMessageBox.information(self, 'Manglende information', 'Der skal ENTEN angives en kontaktperson eller en kontaktadresse. Begge skal være en gyldig email')
             return False
         """
         if self.kontaktperson.text() and not self.validate_email(self.kontaktperson.text()):
-            QMessageBox.information(self, 'Manglende information', 'Der skal angives en gyldig emailadresse til en kontaktperson oprettet hos LER.')
+            QMessageBox.information(self, 'Manglende information',
+                                    'Der skal angives en gyldig emailadresse til en kontaktperson oprettet hos LER.')
             return False
         """
         if self.kontaktadresse.text() and not self.validate_email(self.kontaktadresse.text()):
@@ -101,14 +97,14 @@ class LERplusNewSession(QtWidgets.QDialog, FORM_CLASS):
             return False
         """
         if self.areaprice > 100:
-            reply = QMessageBox.question(self, 'Afsendelse', 'Denne forespørgsel anslå vi vil koster kr. '+"{:.2f}".format(self.areaprice)+'! Er det i orden?',
+            reply = QMessageBox.question(self, 'Afsendelse',
+                                         'Denne forespørgsel anslår vi vil koster kr. ' + "{:.2f}".format(
+                                             self.areaprice) + '! Er det i orden?',
                                          QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
             if reply == QMessageBox.No:
                 return False
 
-
         return True
-
 
     def updateTemplateList(self):
 
@@ -122,11 +118,10 @@ class LERplusNewSession(QtWidgets.QDialog, FORM_CLASS):
         for template in apiresponse['data']['templates']:
             self.templateDropdown.addItem(template["name"])
 
-
     def getTemplate(self):
-        #currentText() virker også
+        # currentText() virker også
         data = {
-            'templatename':  self.templateDropdown.currentText()
+            'templatename': self.templateDropdown.currentText()
         }
         apiresponse = make_api_call(self, "gettemplate", data)
 
@@ -135,9 +130,7 @@ class LERplusNewSession(QtWidgets.QDialog, FORM_CLASS):
 
         self.setFieldsFromArray(json.loads(apiresponse['data']['fieldvalues']))
 
-
     def deleteTemplate(self):
-
 
         reply = QMessageBox.question(self, 'Slet skabelon',
                                      'Er du sikker på du vil slette denne skabelon?',
@@ -145,7 +138,7 @@ class LERplusNewSession(QtWidgets.QDialog, FORM_CLASS):
         if reply == QMessageBox.No:
             return
         data = {
-            'templatename':  self.templateDropdown.currentText()
+            'templatename': self.templateDropdown.currentText()
         }
         apiresponse = make_api_call(self, "deletetemplate", data)
 
@@ -170,20 +163,33 @@ class LERplusNewSession(QtWidgets.QDialog, FORM_CLASS):
                 return
 
             self.updateTemplateList()
+            QMessageBox.information(self, 'Skabeloner', 'skabelonen blev gemt')
+
+    def updateTemplate(self):
+        data = {
+            'fieldvalues': json.dumps(self.getFieldsArray()),
+            'templatename': self.templateDropdown.currentText()
+        }
+        apiresponse = make_api_call(self, "updatetemplate", data)
+
+        if apiresponse is False:
+            return
+
+        self.updateTemplateList()
+        QMessageBox.information(self, 'Skabeloner', 'skabelonen blev opdateret')
 
 
-
-    def getFieldsArray(self):
+    def getFieldsArray(self, include_polygon=True):
         data = {
             'description': self.description.text()
+            , 'sagsnummer': self.sagsnummer.text()
+            # , 'kontaktadresse': self.kontaktadresse.text()
             , 'eget_ordrenummer': self.egetordrenummer.text()
             , 'graveperiode_fra': self.graveperiode_fra.date().toString("yyyy-MM-dd")
             , 'graveperiode_til': self.graveperiode_til.date().toString("yyyy-MM-dd")
             , 'kontaktperson': self.kontaktperson.text()
-            #, 'kontaktadresse': self.kontaktadresse.text()
+
             , 'bemaerkning': self.bemaerkning.toPlainText()
-            , 'sagsnummer': self.sagsnummer.toPlainText()
-            , 'polygon': self.showgeometry.toPlainText()
 
             , 'forsyningsart_teledata': self.forsyningsart_teledata.checkState()
             , 'forsyningsart_antenne': self.forsyningsart_antenne.checkState()
@@ -204,7 +210,7 @@ class LERplusNewSession(QtWidgets.QDialog, FORM_CLASS):
             , 'graveart_gravemaskine': self.graveart_gravemaskine.checkState()
             , 'graveart_styret_underboring': self.graveart_styret_underboring.checkState()
             , 'graveart_kaedegraver': self.graveart_kaedegraver.checkState()
-            , 'graveart_gennempresning': self.graveart_gravemaskine.checkState()
+            , 'graveart_gennempresning': self.graveart_gennempresning.checkState()
             , 'graveart_boring_m_paelebor': self.graveart_boring_m_paelebor.checkState()
             , 'graveart_relining': self.graveart_relining.checkState()
             , 'graveart_cracking': self.graveart_cracking.checkState()
@@ -214,23 +220,33 @@ class LERplusNewSession(QtWidgets.QDialog, FORM_CLASS):
             , 'graveart_andet': self.graveart_andet.checkState()
             , 'graveart_andet_tekst': self.graveart_andet_tekst.text()
 
-            #, 'papirformat': self.papirformat.currentText()
-            #, 'digitalformat_shp': self.digitalformat_shp.checkState()
-            #, 'digitalformat_tab': self.digitalformat_tab.checkState()
-            #, 'digitalformat_dgn': self.digitalformat_dgn.checkState()
-            #, 'digitalformat_dxf': self.digitalformat_dxf.checkState()
+            # , 'papirformat': self.papirformat.currentText()
+            # , 'digitalformat_shp': self.digitalformat_shp.checkState()
+            # , 'digitalformat_tab': self.digitalformat_tab.checkState()
+            # , 'digitalformat_dgn': self.digitalformat_dgn.checkState()
+            # , 'digitalformat_dxf': self.digitalformat_dxf.checkState()
         }
+        if include_polygon:
+            #data["polygon"] = self.showgeometry.toPlainText()
+            data["polygon"] = self.geometrywkt
+        if self.geometry.area() > 250000:
+            data["multisession"] = 1
+        else:
+            data["multisession"] = 0
+
         return data
+
 
     def setFieldsFromArray(self, data):
         self.description.setText(data['description'])
         self.description.setText(data['eget_ordrenummer'])
-        #self.graveperiode_fra.date().setDate(data['graveperiode_fra'])
-        #self.graveperiode_til.date().setDate(data['graveperiode_til'])
+        self.sagsnummer.setText(data['sagsnummer'])
+        # self.graveperiode_fra.date().setDate(data['graveperiode_fra'])
+        # self.graveperiode_til.date().setDate(data['graveperiode_til'])
+        # self.kontaktadresse.setText(data['kontaktadresse'])
         self.kontaktperson.setText(data['kontaktperson'])
-        #self.kontaktadresse.setText(data['kontaktadresse'])
+
         self.bemaerkning.setPlainText(data['bemaerkning'])
-        self.sagsnummer.setPlainText(data['sagsnummer'])
 
         self.forsyningsart_teledata.setCheckState(data['forsyningsart_teledata'])
         self.forsyningsart_antenne.setCheckState(data['forsyningsart_antenne'])
@@ -260,17 +276,18 @@ class LERplusNewSession(QtWidgets.QDialog, FORM_CLASS):
         self.graveart_andet.setCheckState(data['graveart_andet'])
         self.graveart_andet_tekst.setText(data['graveart_andet_tekst'])
 
+
     def sendNewSession(self):
-        #QMessageBox.information(self, 'API-response', 'test')
+        # QMessageBox.information(self, 'API-response', 'test')
         if not self.validateForm():
             return
         reply = QMessageBox.question(self, 'Afsendelse', 'Er du sikker på du vil afsende forespørgslen?',
                                      QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.No:
             return
-        #QMessageBox.information(self, 'test af info', "Dette er test af en simpel infobox " + str(self.geometry.area()) + "m2")
+        # QMessageBox.information(self, 'test af info', "Dette er test af en simpel infobox " + str(self.geometry.area()) + "m2")
 
-        #token = self.tokenEdit.text()
+        # token = self.tokenEdit.text()
         """settings = QgsSettings()
         token = settings.value("lerplus/token")
         #QMessageBox.information(self, 'Token', token)
@@ -278,11 +295,11 @@ class LERplusNewSession(QtWidgets.QDialog, FORM_CLASS):
        
         r = requests.post(url=API_ENDPOINT, data=data)
         response_text = r.text
-
+      
         if not is_valid_json(r.text):
             QMessageBox.information(self, 'Invalid API-response', r.text)
             return
-
+      
         if "error" in response_text.lower():
             if settings.value("lerplus/debugmode") == 1:
                 QMessageBox.information(self, 'ERROR! API-response', response_text)
@@ -295,12 +312,7 @@ class LERplusNewSession(QtWidgets.QDialog, FORM_CLASS):
         if result is False:
             return
 
-        if inDebugMode() == 1:
-            QMessageBox.information(self, 'SUCCESS! API-response', response_text)
-        else:
-            QMessageBox.information(self, "Succes!", 'Session blev tilføjet')
-
-
+        QMessageBox.information(self, "Succes!", 'Session blev tilføjet')
 
         # self.iface.messageBar().pushMessage("Success", "settings saved", level=Qgis.Info, duration=5)
 
@@ -314,28 +326,34 @@ class LERplusNewSession(QtWidgets.QDialog, FORM_CLASS):
                                      QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
             self.close()
-        #else:
-        #event.ignore()
+        # else:
+        # event.ignore()
 
 
     def setIface(self, iface):
         self.iface = iface
+
 
     def setProjection(self, projection):
         self.projection = projection
 
     def setGeometry(self, geometry):
         self.geometry = geometry
-        self.showgeometry.setPlainText(str(self.geometry.asWkt()))
-        areal = "{:.1f}".format(self.geometry.area()) + ' m2 '
+        #self.showgeometry.setPlainText(str(self.geometry.asWkt()))
+        self.geometrywkt = str(self.geometry.asWkt())
+        areal = "{0:,.1f}".format(self.geometry.area()) + ' m2 '
         price = self.geometry.area() * 0.007
         self.areaprice = price
-        areal = areal + "{:.2f}".format(price) + ' kr. (vejledende)'
+        areal = areal + "{0:,.1f}".format(price) + ' kr. (vejledende)'
         self.arealLabel.setText(areal)
+        if self.geometry.area() > 250000:
+            self.multiLabel.setText("MULTI")
+        else:
+            self.multiLabel.setText("SINGLE")
+
 
     def setupValues(self):
         today = date.today()
         self.graveperiode_fra.setMinimumDate(today)
         maxdate = today + relativedelta(months=6)
         self.graveperiode_fra.setMaximumDate(maxdate)
-

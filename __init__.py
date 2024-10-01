@@ -33,4 +33,12 @@ def classFactory(iface):  # pylint: disable=invalid-name
     """
     #
     from .lerplusdock import LerPlusDock
-    return LerPlusDock(iface)
+    plugin = LerPlusDock(iface)
+
+    # This will make sure that the plugin is cleaned up properly
+    try:
+        plugin.unload()
+    except Exception as e:
+        pass
+
+    return plugin

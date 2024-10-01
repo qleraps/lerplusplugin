@@ -7,7 +7,7 @@ name=LER+
 experimental=True
 qgisMinimumVersion=3.0
 description=Nem adgang til LER2 forespørgsler
-version=1.99.2
+version=2.0.1
 author=qLER ApS
 email=morten@qler.dk
 
@@ -21,7 +21,7 @@ repository=https://github.com/qleraps/lerplusplugin
 
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
-changelog=Validering af forespørgselsområde og kontaktoplysninger
+changelog=Removed visisble wkt-code, added saving changes to a templste
 
 # Tags are comma separated with spaces allowed
 tags=ler,ler2

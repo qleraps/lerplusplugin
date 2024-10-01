@@ -1,0 +1,2 @@
+*** 2.0.0 ***
+- Første ikke experimental version
